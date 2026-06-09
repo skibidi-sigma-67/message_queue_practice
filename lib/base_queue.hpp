@@ -4,7 +4,17 @@
 #include <cstdint>
 #include <optional>
 
+enum struct PushStatus {
+    kPushed,
+    kDropped,
+    kBlocked,
+    kError
+};
+
 class BaseQueue {
+private:
+    QueueStats stats_;
+
 public:
     virtual ~BaseQueue() = default;
 
