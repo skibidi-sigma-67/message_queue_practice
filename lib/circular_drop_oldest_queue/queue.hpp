@@ -21,33 +21,20 @@ private:
     QueueStats stats_{0, 0, 0, 0, 0};
 
 public:
-    explicit CircularDropOldestQueue(size_t max_size) : max_size_(max_size) {
-        buffer_.resize(max_size_);
-    }
+    explicit CircularDropOldestQueue(size_t max_size);
 
     ~CircularDropOldestQueue() override = default;
 
-    size_t Size() const override {
-        // TODO
-    }
+    size_t Size() const override;
 
-    QueueStats GetStats() const override {
-        // TODO        
-    }
+    QueueStats GetStats() const override;
 
-    PushStatus Push(Message message) override {
-        // TODO
-    }
+    PushStatus Push(Message message) override;
 
-    std::optional<Message> TryPop() override {
-        // TODO
-    }
+    std::optional<Message> TryPop() override;
 
-    std::optional<Message> WaitPop() override {
-        // TODO
-    }
+    std::optional<Message> WaitPop() override;
 
-    void Close() override {
-        // TODO
-    }
+    void Close() override;
+    
 };
