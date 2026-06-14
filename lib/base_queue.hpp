@@ -1,7 +1,9 @@
-#include "base_message.hpp"
-#include "stats.hpp"
+#pragma once
 
-#include <cstdint>
+#include <base_message.hpp>
+#include <stats.hpp>
+
+#include <cstddef>
 #include <optional>
 
 enum struct PushStatus {
