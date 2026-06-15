@@ -16,7 +16,6 @@ enum struct PushStatus {
 class BaseQueue {
 private:
     QueueStats stats_;
-
 public:
     virtual ~BaseQueue() = default;
 

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../base_queue.hpp"
+#include <base_queue.hpp>
 
 #include <deque>
 #include <mutex>
