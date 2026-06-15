@@ -18,18 +18,53 @@ QueueStats BlockingBoundedQueue::GetStats() const {
 }
 
 PushStatus BlockingBoundedQueue::Push(Message message) {
-    // TODO
-    return {};
+    std::unique_lock<std::mutex> lock(mutex_);
+    cv_not_full_.wait(lock, [this]() {
+        return queue_.size() < capacity_ || is_closed_;
+    });
+
+    if (is_closed_) {
+        ++stats_.failed_count;
+        return PushStatus::kError;
+    }
+
+    queue_.push_back(std::move(message));
+    ++stats_.push_count;
+
+    cv_not_empty_.notify_one();
+    return PushStatus::kPushed;
 }
 
 std::optional<Message> BlockingBoundedQueue::TryPop() {
-    // TODO
+    std::lock_guard<std::mutex> lock(mutex_);
+
+    if (!queue_.empty()) {
+        Message message = std::move(queue_.front());
+        queue_.pop_front();
+        ++stats_.pop_count;
+
+        cv_not_full_.notify_one();
+        return message;
+    }
     return std::nullopt;
 }
 
 std::optional<Message> BlockingBoundedQueue::WaitPop() {
-    // TODO
-    return std::nullopt;
+    std::unique_lock<std::mutex> lock(mutex_);
+    cv_not_empty_.wait(lock, [this]() {
+        return !queue_.empty() || is_closed_;
+    });
+
+    if (queue_.empty() && is_closed_) {
+        return std::nullopt;
+    }
+
+    Message message = std::move(queue_.front());
+    queue_.pop_front();
+    ++stats_.pop_count;
+
+    cv_not_full_.notify_one();
+    return message;
 }
 
 void BlockingBoundedQueue::Close() {
