@@ -1,3 +1,5 @@
+#pragma once
+
 #include "base_message.hpp"
 #include "stats.hpp"
 
