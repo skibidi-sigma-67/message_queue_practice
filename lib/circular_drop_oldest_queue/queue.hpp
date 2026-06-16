@@ -12,16 +12,17 @@ private:
     std::vector<Message> buffer_;
     size_t head_ = 0;
     size_t tail_ = 0;
-    size_t current_size_ = 0;
-    size_t max_size_;
+    size_t size_ = 0;
+    size_t capacity_;
     bool is_closed_ = false;
 
-    // mutable std::mutex mutex_;
-    // std::condition_variable cv_;
+    mutable std::mutex mutex_;
+    std::condition_variable cv_;
+
     QueueStats stats_{0, 0, 0, 0, 0};
 
 public:
-    explicit CircularDropOldestQueue(size_t max_size);
+    explicit CircularDropOldestQueue(size_t capacity) : capacity_(capacity) {};
 
     ~CircularDropOldestQueue() override = default;
 
