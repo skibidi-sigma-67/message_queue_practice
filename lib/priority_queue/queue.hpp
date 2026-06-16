@@ -12,9 +12,7 @@ private:
         Message message;
         uint64_t seq_id;
 
-        bool operator>(const PriorityNode& other) const {
-            return false;
-        }
+        bool operator>(const PriorityNode& other) const;
     };
 
     std::vector<PriorityNode> heap_;
@@ -29,26 +27,15 @@ public:
     PriorityQueue() = default;
     ~PriorityQueue() override = default;
 
-    size_t Size() const override {
-        return 0;
-    }
+    size_t Size() const override;
 
-    QueueStats GetStats() const override {
-        return {};
-    }
+    QueueStats GetStats() const override;
 
-    PushStatus Push(Message message) override {
-        return PushStatus::kPushed;
-    }
+    PushStatus Push(Message message) override;
 
-    std::optional<Message> TryPop() override {
-        return std::nullopt;
-    }
+    std::optional<Message> TryPop() override;
 
-    std::optional<Message> WaitPop() override {
-        return std::nullopt;
-    }
+    std::optional<Message> WaitPop() override;
 
-    void Close() override {
-    }
-};
+    void Close() override;
+}
