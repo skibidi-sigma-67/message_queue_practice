@@ -28,6 +28,8 @@ jobs:
             echo "No files found." > tidy_log.txt
           fi
 
+          cat tidy_log.txt
+
           echo "{\"warnings\": $WARNINGS}" > codestyle.json
 
           echo "### 🎨 Codestyle Details" >> $GITHUB_STEP_SUMMARY
