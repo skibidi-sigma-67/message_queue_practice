@@ -5,7 +5,7 @@
 #include <condition_variable>
 #include <optional>
 
-#include "../base_queue.hpp"
+#include <base_queue.hpp>
 
 class CircularDropOldestQueue : public BaseQueue {
 private:
