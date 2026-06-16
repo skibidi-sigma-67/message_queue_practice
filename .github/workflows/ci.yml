@@ -19,7 +19,7 @@ jobs:
 
       - name: Run clang-tidy
         run: |
-          FILES=$(find src -type f \( -name "*.cpp" -o -name "*.hpp" \))
+          FILES=$(find . -type d -name "build" -prune -o -type f \( -name "*.cpp" -o -name "*.hpp" \) -print)
           if [ -n "$FILES" ]; then
             clang-tidy -p build $FILES > tidy_log.txt 2>&1 || true
             WARNINGS=$(grep -cEi "warning:|error:" tidy_log.txt || echo "0")
