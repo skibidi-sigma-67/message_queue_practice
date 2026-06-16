@@ -1,0 +1,240 @@
+name: CI Pipeline
+
+on:
+  pull_request:
+    branches: ["main"]
+
+jobs:
+  codestyle:
+    name: 🎨 Codestyle Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: sudo apt-get update && sudo apt-get install -y clang-tidy cmake ninja-build jq
+
+      - name: Generate compilation database
+        run: cmake -B build -G Ninja -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+
+      - name: Run clang-tidy
+        run: |
+          FILES=$(find src -type f \( -name "*.cpp" -o -name "*.hpp" \))
+          if [ -n "$FILES" ]; then
+            clang-tidy -p build $FILES > tidy_log.txt 2>&1 || true
+            WARNINGS=$(grep -cEi "warning:|error:" tidy_log.txt || echo "0")
+          else
+            WARNINGS=0
+            echo "No files found." > tidy_log.txt
+          fi
+
+          echo "{\"warnings\": $WARNINGS}" > codestyle.json
+
+          echo "### 🎨 Codestyle Details" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`text" >> $GITHUB_STEP_SUMMARY
+          cat tidy_log.txt >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+
+      - name: Upload Codestyle Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: codestyle-data
+          path: codestyle.json
+
+  build_and_test:
+    name: 🛠️ Build & Test - ${{ matrix.config.name }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        config:
+          - { name: "gcc", cc: "gcc", cxx: "g++", flags: "" }
+          - {
+              name: "gcc-san",
+              cc: "gcc",
+              cxx: "g++",
+              flags: "-fsanitize=address,undefined",
+            }
+          - { name: "clang", cc: "clang", cxx: "clang++", flags: "" }
+          - {
+              name: "clang-san",
+              cc: "clang",
+              cxx: "clang++",
+              flags: "-fsanitize=address,undefined",
+            }
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install tools
+        run: sudo apt-get update && sudo apt-get install -y cmake ninja-build jq
+
+      - name: Configure CMake
+        id: config
+        env:
+          CC: ${{ matrix.config.cc }}
+          CXX: ${{ matrix.config.cxx }}
+          CXXFLAGS: ${{ matrix.config.flags }}
+        run: |
+          if cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Debug -DBUILD_TESTS=ON -DCMAKE_EXPORT_COMPILE_COMMANDS=ON; then
+            echo "HAS_TESTS=true" >> $GITHUB_ENV
+          else
+            echo "HAS_TESTS=false" >> $GITHUB_ENV
+            cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Debug -DBUILD_TESTS=OFF -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+          fi
+
+      - name: Build Project
+        id: build
+        run: cmake --build build
+
+      - name: Run Tests
+        id: test
+        if: always() && steps.build.outcome == 'success'
+        run: |
+          if [ "$HAS_TESTS" == "true" ]; then
+            if ctest --test-dir build --output-on-failure -j $(nproc) > test_log.txt 2>&1; then
+              echo "TEST_STATUS=✅" >> $GITHUB_ENV
+            else
+              echo "TEST_STATUS=❌" >> $GITHUB_ENV
+            fi
+          else
+            echo "Tests skipped" > test_log.txt
+            echo "TEST_STATUS=⏭️" >> $GITHUB_ENV
+          fi
+
+      - name: Prepare Artifact Data
+        if: always()
+        run: |
+          CONF_STATUS="${{ steps.config.outcome == 'success' && '✅' || '❌' }}"
+          BUILD_STATUS="${{ steps.build.outcome == 'success' && '✅' || '❌' }}"
+          TEST_STAT="${{ env.TEST_STATUS || '❌' }}"
+
+          jq -n \
+            --arg compiler "${{ matrix.config.name }}" \
+            --arg configured "$CONF_STATUS" \
+            --arg built "$BUILD_STATUS" \
+            --arg tested "$TEST_STAT" \
+            '{compiler: $compiler, configured: $configured, built: $built, tested: $tested}' > matrix_${{ matrix.config.name }}.json
+
+          mv test_log.txt test_log_${{ matrix.config.name }}.txt || touch test_log_${{ matrix.config.name }}.txt
+
+      - name: Upload Matrix Artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: data-${{ matrix.config.name }}
+          path: |
+            matrix_${{ matrix.config.name }}.json
+            test_log_${{ matrix.config.name }}.txt
+
+      - name: Enforce Job Failure
+        if: always() && (steps.config.outcome == 'failure' || steps.build.outcome == 'failure' || env.TEST_STATUS == '❌')
+        run: exit 1
+
+  pr_comment:
+    name: 📊 Generate Report Card
+    runs-on: ubuntu-latest
+    needs: [codestyle, build_and_test]
+    if: always() && github.event_name == 'pull_request'
+    permissions:
+      pull-requests: write
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+          merge-multiple: true
+
+      - name: Post Comment to PR
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const fs = require('fs');
+
+            let warningsCount = 0;
+            try {
+              const styleData = JSON.parse(fs.readFileSync('artifacts/codestyle.json'));
+              warningsCount = styleData.warnings;
+            } catch (e) {}
+
+            const isStylePerfect = warningsCount === 0;
+            const styleText = isStylePerfect
+              ? 'Code style is followed ✅ (0 warnings)'
+              : `Code style is not followed ❌ (${warningsCount} warnings)`;
+
+            const compilers = ['gcc', 'gcc-san', 'clang', 'clang-san'];
+            const matrixResults = {};
+            const testResults = {};
+            let anyFailures = false;
+
+            compilers.forEach(c => {
+              matrixResults[c] = { configured: '⏳', built: '⏳', tested: '⏳' };
+
+              try {
+                const data = JSON.parse(fs.readFileSync(`artifacts/matrix_${c}.json`));
+                matrixResults[c] = data;
+                if (data.tested.includes('❌') || data.built.includes('❌') || data.configured.includes('❌')) {
+                  anyFailures = true;
+                }
+              } catch(e) {}
+
+              try {
+                const log = fs.readFileSync(`artifacts/test_log_${c}.txt`, 'utf8');
+                const testRegex = /Test\s+#\d+:\s+([a-zA-Z0-9_]+).*?(Passed|Failed|Exception|Timeout)/g;
+                let match;
+                while ((match = testRegex.exec(log)) !== null) {
+                  const tName = match[1];
+                  const tStatus = match[2] === 'Passed' ? '✅' : '❌';
+                  if (!testResults[tName]) testResults[tName] = {};
+                  testResults[tName][c] = tStatus;
+                }
+              } catch(e) {}
+            });
+
+            const overallTests = anyFailures
+              ? 'Some checks were not successful ❌'
+              : 'All tests passed successfully ✅🎉';
+
+            let tableHeader = `| Stage / Test | ` + compilers.map(c => `\`${c}\``).join(' | ') + ` |`;
+            let tableDivider = `|:---|` + compilers.map(() => `:---:`).join('|') + `|`;
+
+            let rowConfig = `| **Configured?** | ` + compilers.map(c => matrixResults[c].configured).join(' | ') + ` |`;
+            let rowBuild = `| **Built?** | ` + compilers.map(c => matrixResults[c].built).join(' | ') + ` |`;
+
+            let bodyRows = [tableHeader, tableDivider, rowConfig, rowBuild];
+
+            const testNames = Object.keys(testResults).sort();
+            if (testNames.length > 0) {
+              testNames.forEach(tName => {
+                let row = `| **${tName}** | ` + compilers.map(c => testResults[tName][c] || '⏭️').join(' | ') + ` |`;
+                bodyRows.push(row);
+              });
+            } else {
+              let rowTest = `| **Tests Passed?** | ` + compilers.map(c => matrixResults[c].tested).join(' | ') + ` |`;
+              bodyRows.push(rowTest);
+            }
+
+            const commitHash = context.payload.pull_request.head.sha.substring(0, 7);
+
+            const body = `## 📊 Report Card
+
+            ### Overview
+            * ${overallTests}
+            * ${styleText}
+
+            ### Test Matrix
+
+            ${bodyRows.join('\n')}
+
+            _This report was generated for the commit \`${commitHash}\`._
+
+            **[🔍 View full compiler logs and test output in the Checks tab](${context.payload.pull_request.html_url}/checks)**
+            `;
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: body
+            });
