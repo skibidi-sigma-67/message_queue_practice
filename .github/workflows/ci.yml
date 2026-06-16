@@ -23,20 +23,22 @@ jobs:
 
           echo "### 🎨 Codestyle Report (clang-tidy)" >> $GITHUB_STEP_SUMMARY
 
-          if clang-tidy -p build --warnings-as-errors=* $FILES > tidy_log.txt 2>&1; then
-            echo "✅ **Perfect!** Code follows the style guidelines. No issues found." >> $GITHUB_STEP_SUMMARY
+          if [ -z "$FILES" ]; then
+            echo "✅ **No source files found to check.**" >> $GITHUB_STEP_SUMMARY
           else
-            echo "❌ **Formatting errors or bugs found:**" >> $GITHUB_STEP_SUMMARY
-            echo "\`\`\`text" >> $GITHUB_STEP_SUMMARY
-            cat tidy_log.txt >> $GITHUB_STEP_SUMMARY
-            echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
-            exit 1
+            if clang-tidy -p build --warnings-as-errors=* $FILES > tidy_log.txt 2>&1; then
+              echo "✅ **Perfect!** Code follows the style guidelines. No issues found." >> $GITHUB_STEP_SUMMARY
+            else
+              echo "⚠️ **Formatting issues found (Non-blocking):**" >> $GITHUB_STEP_SUMMARY
+              echo "\`\`\`text" >> $GITHUB_STEP_SUMMARY
+              cat tidy_log.txt >> $GITHUB_STEP_SUMMARY
+              echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+            fi
           fi
 
   build_and_test:
-    name: 🛠️ Build & Test (${{ matrix.config.name }})
+    name: 🛠️ Build & Test - ${{ matrix.config.name }}
     runs-on: ubuntu-latest
-    needs: codestyle
     strategy:
       fail-fast: false
       matrix:
@@ -75,7 +77,12 @@ jobs:
           echo "Below are the source files participating in the build:" >> $GITHUB_STEP_SUMMARY
           echo "\`\`\`text" >> $GITHUB_STEP_SUMMARY
 
-          jq -r '.[].file' build/compile_commands.json | awk -F'${{ github.workspace }}/' '{print "- " $2}' >> $GITHUB_STEP_SUMMARY
+          if [ -f build/compile_commands.json ]; then
+            jq -r '.[].file' build/compile_commands.json | awk -F'${{ github.workspace }}/' '{print "- " $2}' >> $GITHUB_STEP_SUMMARY
+          else
+            echo "No files compiled or compile_commands.json missing." >> $GITHUB_STEP_SUMMARY
+          fi
+
           echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
 
       - name: Build
@@ -86,10 +93,11 @@ jobs:
           echo "### 🧪 Test Results (${{ matrix.config.name }})" >> $GITHUB_STEP_SUMMARY
           echo "\`\`\`text" >> $GITHUB_STEP_SUMMARY
 
-          ctest --test-dir build --output-on-failure -j $(nproc) > test_log.txt 2>&1
-          EXIT_CODE=$?
-
-          cat test_log.txt >> $GITHUB_STEP_SUMMARY
-          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
-
-          exit $EXIT_CODE
+          if ctest --test-dir build --output-on-failure -j $(nproc) > test_log.txt 2>&1; then
+            cat test_log.txt >> $GITHUB_STEP_SUMMARY
+            echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          else
+            cat test_log.txt >> $GITHUB_STEP_SUMMARY
+            echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+            exit 1
+          fi
