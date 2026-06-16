@@ -699,4 +699,3 @@ FodyWeavers.xsd
 *.sln.iml
 
 compile_flags.txt
-compile_commands.json
