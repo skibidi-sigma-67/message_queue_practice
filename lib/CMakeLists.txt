@@ -1,1 +1,0 @@
-add_subdirectory(circular_writer_block)
