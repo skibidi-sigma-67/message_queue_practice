@@ -45,3 +45,37 @@ PushStatus CircularDropOldestQueue::Push(Message message) {
     return status;
 }
 
+std::optional<Message> CircularDropOldestQueue::TryPop() {
+    std::lock_guard<std::mutex> lock(mutex_);
+    
+    if (size_ == 0) {
+        return std::nullopt;
+    }
+
+    Message msg = std::move(buffer_[head_]);
+    head_ = (head_ + 1) % capacity_;
+    size_--;
+    stats_.pop_count++;
+
+    return msg;
+}
+
+std::optional<Message> CircularDropOldestQueue::WaitPop() {
+    std::unique_lock<std::mutex> lock(mutex_);
+    
+    cv_.wait(lock, [this]() { 
+        return size_ > 0 || is_closed_; 
+    });
+
+    if (size_ == 0 && is_closed_) {
+        return std::nullopt;
+    }
+
+    Message msg = std::move(buffer_[head_]);
+    head_ = (head_ + 1) % capacity_;
+    size_--;
+    stats_.pop_count++;
+
+    return msg;
+}
+
