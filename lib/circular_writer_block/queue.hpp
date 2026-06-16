@@ -1,24 +1,31 @@
 #pragma once
 
-#include <base_message.hpp>
 #include <base_queue.hpp>
-#include <stats.hpp>
 
-#include <condition_variable>
-#include <cstddef>
-#include <mutex>
-#include <optional>
 #include <vector>
+#include <mutex>
+#include <condition_variable>
+#include <optional>
 
-namespace circular_writer_block {
+class CircularWriterBlockQueue : public BaseQueue {
+private:
+    std::vector<Message> buffer_;
+    size_t capacity_;
+    size_t head_ = 0;
+    size_t tail_ = 0;
+    size_t size_ = 0;
+    bool is_closed_ = false;
 
-class Queue : public BaseQueue {
+    mutable std::mutex mutex_;
+    std::condition_variable cv_not_empty_;
+    std::condition_variable cv_not_full_;
+
+    QueueStats stats_{0, 0, 0, 0, 0};
 public:
-    explicit Queue(std::size_t capacity);
-    ~Queue() override = default;
+    explicit CircularWriterBlockQueue(size_t capacity)
+        : buffer_(capacity), capacity_(capacity) {}
 
-    Queue(const Queue&) = delete;
-    Queue& operator=(const Queue&) = delete;
+    ~CircularWriterBlockQueue() override = default;
 
     size_t Size() const override;
 
@@ -31,21 +38,4 @@ public:
     std::optional<Message> WaitPop() override;
 
     void Close() override;
-
-private:
-    mutable std::mutex mutex_;
-    std::condition_variable not_full_;
-    std::condition_variable not_empty_;
-
-    std::vector<Message> buffer_;
-    std::size_t capacity_;
-    std::size_t head_ = 0;
-    std::size_t tail_ = 0;
-    std::size_t size_ = 0;
-    bool closed_ = false;
-
-    QueueStats stats_{};
-    std::size_t push_blocked_count_ = 0;
 };
-
-}  // namespace circular_writer_block
