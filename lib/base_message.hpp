@@ -2,6 +2,7 @@
 
 #include <chrono>
 #include <string>
+#include <cstdint>
 
 struct Message {
     uint64_t id = 0;
