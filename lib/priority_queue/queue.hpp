@@ -38,4 +38,4 @@ public:
     std::optional<Message> WaitPop() override;
 
     void Close() override;
-}
+};
