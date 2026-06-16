@@ -1,0 +1,12 @@
+---
+Checks: >
+  -*,
+  google-*,
+  bugprone-*,
+  performance-*,
+  readability-*,
+  modernize-*
+
+HeaderFilterRegex: '.*'
+WarningsAsErrors: ''
+...
