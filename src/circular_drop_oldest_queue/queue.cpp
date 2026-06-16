@@ -79,3 +79,10 @@ std::optional<Message> CircularDropOldestQueue::WaitPop() {
     return msg;
 }
 
+void CircularDropOldestQueue::Close() {
+    std::lock_guard<std::mutex> lock(mutex_);
+    
+    is_closed_ = true;
+    cv_.notify_all(); 
+}
+
