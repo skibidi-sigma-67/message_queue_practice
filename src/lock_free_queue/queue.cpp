@@ -1,7 +1,14 @@
 #include <lock_free_queue/queue.hpp>
 
+#include <base_message.hpp>
+#include <base_queue.hpp>
+#include <stats.hpp>
+
 #include <atomic>
 #include <utility>
+#include <optional>
+#include <cstddef>
+
 
 struct LockFreeQueue::Node {
     Node() = default;
