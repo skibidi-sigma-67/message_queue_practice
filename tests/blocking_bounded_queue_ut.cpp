@@ -11,8 +11,6 @@
 #include <optional>
 #include <utility>
 
-using namespace std::chrono_literals;
-
 TEST(BlockingBoundedQueueTest, BasicPushTryPop) {
     BlockingBoundedQueue queue(2);
     EXPECT_EQ(queue.Size(), 0);
@@ -62,7 +60,7 @@ TEST(BlockingBoundedQueueTest, WaitPopBlocks) {
         }
     });
 
-    std::this_thread::sleep_for(50ms);
+    std::this_thread::sleep_for(std::chrono::milliseconds(50));
     EXPECT_FALSE(is_popped.load());
 
     queue.Push(Message{.id = 1});
@@ -80,7 +78,7 @@ TEST(BlockingBoundedQueueTest, PushBlocksOnFull) {
         is_pushed = true;
     });
 
-    std::this_thread::sleep_for(50ms);
+    std::this_thread::sleep_for(std::chrono::milliseconds(50));
     EXPECT_FALSE(is_pushed.load());
 
     auto popped_message = queue.WaitPop();
@@ -101,7 +99,7 @@ TEST(BlockingBoundedQueueTest, CloseUnblocksPush) {
         push_status = queue.Push(Message{.id = 2});
     });
 
-    std::this_thread::sleep_for(50ms);
+    std::this_thread::sleep_for(std::chrono::milliseconds(50));
     queue.Close();
 
     producer_thread.join();
@@ -119,7 +117,7 @@ TEST(BlockingBoundedQueueTest, CloseUnblocksWaitPop) {
         }
     });
 
-    std::this_thread::sleep_for(50ms);
+    std::this_thread::sleep_for(std::chrono::milliseconds(50));
     queue.Close();
 
     consumer_thread.join();
