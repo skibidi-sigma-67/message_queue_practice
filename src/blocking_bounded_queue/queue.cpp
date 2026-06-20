@@ -1,6 +1,6 @@
 #include <queue.hpp>
 
-#include <queue.hpp>
+#include <base_queue.hpp>
 #include <base_message.hpp>
 #include <stats.hpp>
 
