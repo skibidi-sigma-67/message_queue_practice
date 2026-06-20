@@ -1,7 +1,10 @@
 #pragma once
 
 #include <base_queue.hpp>
+#include <base_message.hpp>
+#include <stats.hpp>
 
+#include <cstddef>
 #include <deque>
 #include <mutex>
 #include <condition_variable>

@@ -1,5 +1,11 @@
 #include <queue.hpp>
 
+#include <queue.hpp>
+#include <base_message.hpp>
+#include <stats.hpp>
+
+#include <utility>
+#include <cstddef>
 #include <mutex>
 #include <condition_variable>
 #include <optional>
