@@ -3,6 +3,7 @@
 #include <thread>
 #include <chrono>
 #include <optional>
+#include <cstddef>
 
 #include <base_message.hpp>
 #include <base_queue.hpp>
@@ -137,7 +138,7 @@ TEST(CircularDropOldestQueueTest, SizeInvariants) {
         EXPECT_TRUE(queue.TryPop().has_value());
         EXPECT_LE(queue.Size(), capacity);
     }
-    
+
     EXPECT_EQ(queue.Size(), 0);
     EXPECT_FALSE(queue.TryPop().has_value());
     EXPECT_EQ(queue.Size(), 0);
