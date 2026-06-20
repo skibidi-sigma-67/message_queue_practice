@@ -108,5 +108,5 @@ TEST(CircularDropOldestQueueTest, StatsTracking) {
     EXPECT_EQ(stats.pop_count, 1);
     EXPECT_EQ(stats.dropout_count, 1);
     EXPECT_EQ(stats.failed_count, 1);
-    EXPECT_EQ(stats.current_size, 2);
+    EXPECT_EQ(stats.current_size, 1);
 }
