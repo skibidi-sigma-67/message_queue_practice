@@ -110,3 +110,35 @@ TEST(CircularDropOldestQueueTest, StatsTracking) {
     EXPECT_EQ(stats.failed_count, 1);
     EXPECT_EQ(stats.current_size, 1);
 }
+
+TEST(CircularDropOldestQueueTest, SizeInvariants) {
+    const size_t capacity = 3;
+    CircularDropOldestQueue queue(capacity);
+    
+    EXPECT_EQ(queue.Size(), 0);
+    EXPECT_LE(queue.Size(), capacity);
+
+    queue.TryPop();
+    EXPECT_EQ(queue.Size(), 0);
+
+    for (size_t i = 0; i < capacity; ++i) {
+        queue.Push(Message{i, 1, 1, "msg", std::chrono::steady_clock::now()});
+        EXPECT_LE(queue.Size(), capacity);
+    }
+    EXPECT_EQ(queue.Size(), capacity);
+
+    for (size_t i = 0; i < 10; ++i) {
+        queue.Push(Message{capacity + i, 1, 1, "msg", std::chrono::steady_clock::now()});
+        EXPECT_EQ(queue.Size(), capacity);
+        EXPECT_LE(queue.Size(), capacity);
+    }
+
+    for (size_t i = 0; i < capacity; ++i) {
+        EXPECT_TRUE(queue.TryPop().has_value());
+        EXPECT_LE(queue.Size(), capacity);
+    }
+    
+    EXPECT_EQ(queue.Size(), 0);
+    EXPECT_FALSE(queue.TryPop().has_value());
+    EXPECT_EQ(queue.Size(), 0);
+}
