@@ -169,6 +169,88 @@ TEST(CircularWriterBlockQueueTest, StatsTracking) {
     EXPECT_EQ(queue_stats.failed_count, 1);
 }
 
+TEST(CircularWriterBlockQueueTest, PreservesPayload) {
+    CircularWriterBlockQueue queue(2);
+    queue.Push(Message{.id = 1, .payload = "hello"});
+    queue.Push(Message{.id = 2, .payload = "world"});
+
+    auto first_popped_message = queue.WaitPop();
+    ASSERT_TRUE(first_popped_message.has_value());
+    EXPECT_EQ(first_popped_message->id, 1);
+    EXPECT_EQ(first_popped_message->payload, "hello");
+
+    auto second_popped_message = queue.WaitPop();
+    ASSERT_TRUE(second_popped_message.has_value());
+    EXPECT_EQ(second_popped_message->id, 2);
+    EXPECT_EQ(second_popped_message->payload, "world");
+}
+
+TEST(CircularWriterBlockQueueTest, NeverDropsMessages) {
+    CircularWriterBlockQueue queue(2);
+    queue.Push(Message{.id = 1});
+    queue.Push(Message{.id = 2});
+    queue.TryPop();
+
+    queue.Close();
+    queue.Push(Message{.id = 3});
+
+    auto queue_stats = queue.GetStats();
+    EXPECT_EQ(queue_stats.dropout_count, 0);
+}
+
+TEST(CircularWriterBlockQueueTest, RingBufferWrapAroundPreservesOrder) {
+    CircularWriterBlockQueue queue(3);
+
+    uint64_t next_to_push = 1;
+    uint64_t next_expected = 1;
+
+    for (int cycle = 0; cycle < 5; ++cycle) {
+        while (queue.Size() < 3) {
+            EXPECT_EQ(queue.Push(Message{.id = next_to_push}), PushStatus::kPushed);
+            ++next_to_push;
+        }
+        for (int i = 0; i < 2; ++i) {
+            auto popped_message = queue.TryPop();
+            ASSERT_TRUE(popped_message.has_value());
+            EXPECT_EQ(popped_message->id, next_expected);
+            ++next_expected;
+        }
+    }
+
+    while (auto popped_message = queue.TryPop()) {
+        EXPECT_EQ(popped_message->id, next_expected);
+        ++next_expected;
+    }
+
+    EXPECT_EQ(queue.Size(), 0);
+    EXPECT_EQ(next_expected, next_to_push);
+}
+
+TEST(CircularWriterBlockQueueTest, TryPopUnblocksPush) {
+    CircularWriterBlockQueue queue(1);
+    queue.Push(Message{.id = 1});
+
+    std::atomic<bool> is_pushed{false};
+    std::thread producer_thread([&]() {
+        queue.Push(Message{.id = 2});
+        is_pushed = true;
+    });
+
+    std::this_thread::sleep_for(std::chrono::milliseconds(50));
+    EXPECT_FALSE(is_pushed.load());
+
+    auto popped_message = queue.TryPop();
+    ASSERT_TRUE(popped_message.has_value());
+    EXPECT_EQ(popped_message->id, 1);
+
+    producer_thread.join();
+    EXPECT_TRUE(is_pushed.load());
+
+    auto second_popped_message = queue.TryPop();
+    ASSERT_TRUE(second_popped_message.has_value());
+    EXPECT_EQ(second_popped_message->id, 2);
+}
+
 TEST(CircularWriterBlockQueueTest, MultipleProducersConsumers) {
     const int num_producers = 4;
     const int num_consumers = 4;
