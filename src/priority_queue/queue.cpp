@@ -21,19 +21,19 @@ PushStatus PriorityQueue::Push(Message message) {
     std::lock_guard<std::mutex> lock(mutex_);
     
     if (is_closed_) {
-        return PushStatus::CLOSED;
+        return PushStatus::kError; 
     }
 
     heap_.push_back({std::move(message), next_seq_id_++});
 
     std::push_heap(heap_.begin(), heap_.end(), std::greater<PriorityNode>());
 
-    stats_.total_pushed++;
+    stats_.push_count++;
     stats_.current_size = heap_.size();
 
     not_empty_.notify_one();
     
-    return PushStatus::SUCCESS;
+    return PushStatus::kPushed;
 }
 
 std::optional<Message> PriorityQueue::TryPop() {
@@ -48,7 +48,7 @@ std::optional<Message> PriorityQueue::TryPop() {
     PriorityNode node = std::move(heap_.back());
     heap_.pop_back();
 
-    stats_.total_popped++;
+    stats_.pop_count++;
     stats_.current_size = heap_.size();
 
     return node.message;
@@ -69,7 +69,7 @@ std::optional<Message> PriorityQueue::WaitPop() {
     PriorityNode node = std::move(heap_.back());
     heap_.pop_back();
 
-    stats_.total_popped++;
+    stats_.pop_count++;
     stats_.current_size = heap_.size();
 
     return node.message;
