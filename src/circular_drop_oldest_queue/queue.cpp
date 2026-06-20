@@ -18,7 +18,7 @@ QueueStats CircularDropOldestQueue::GetStats() const {
     std::lock_guard<std::mutex> lock(mutex_);
 
     QueueStats current_stats = stats_;
-    current_stats.current_size = capacity_;
+    current_stats.current_size = size_;
 
     return current_stats;
 }
