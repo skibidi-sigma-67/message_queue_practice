@@ -22,7 +22,7 @@ private:
     QueueStats stats_{0, 0, 0, 0, 0};
 
 public:
-    explicit CircularDropOldestQueue(size_t capacity) : capacity_(capacity) {};
+    explicit CircularDropOldestQueue(size_t capacity) : buffer_(capacity), capacity_(capacity) {};
 
     ~CircularDropOldestQueue() override = default;
 
