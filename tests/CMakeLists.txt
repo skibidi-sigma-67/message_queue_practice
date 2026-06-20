@@ -16,13 +16,14 @@ enable_testing()
 
 add_executable(
     message-queue-lib-tests
-
+    priority_queue_ut.cpp
 )
 
 target_link_libraries(
     message-queue-lib-tests
     GTest::gtest_main
     GTest::gmock_main
+    message_queue_priority_queue
 )
 
 target_include_directories(message-queue-lib-tests PUBLIC ${PROJECT_SOURCE_DIR})
