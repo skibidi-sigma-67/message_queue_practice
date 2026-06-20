@@ -1,11 +1,6 @@
-add_library(message_queue_core INTERFACE)
+add_library(message_queue_priority_queue
+    queue.cpp
+)
 
-target_include_directories(message_queue_core INTERFACE ${CMAKE_SOURCE_DIR}/lib)
-
-file(GLOB src_subdirs LIST_DIRECTORIES true "${CMAKE_CURRENT_SOURCE_DIR}/*")
-
-foreach(dir ${src_subdirs})
-  if(IS_DIRECTORY "${dir}" AND EXISTS "${dir}/CMakeLists.txt")
-    add_subdirectory("${dir}")
-  endif()
-endforeach()
+target_link_libraries(message_queue_priority_queue PUBLIC message_queue_core)
+target_include_directories(message_queue_priority_queue PUBLIC ${CMAKE_SOURCE_DIR}/lib/priority_queue)
