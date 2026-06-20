@@ -1,6 +1,7 @@
 #include <queue.hpp>
 #include <base_queue.hpp>
 #include "base_message.hpp"
+#include "stats.hpp"
 
 #include <utility>
 #include <cstddef>
