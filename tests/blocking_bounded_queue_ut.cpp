@@ -2,11 +2,14 @@
 
 #include <queue.hpp>
 #include <base_message.hpp>
+#include <base_queue.hpp>
 
 #include <thread>
 #include <vector>
 #include <atomic>
 #include <chrono>
+#include <optional>
+#include <utility>
 
 using namespace std::chrono_literals;
 
