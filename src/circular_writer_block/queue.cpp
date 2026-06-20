@@ -1,8 +1,14 @@
 #include <queue.hpp>
 
-#include <mutex>
+#include <base_message.hpp>
+#include <base_queue.hpp>
+#include <stats.hpp>
+
 #include <condition_variable>
+#include <cstddef>
+#include <mutex>
 #include <optional>
+#include <utility>
 
 size_t CircularWriterBlockQueue::Size() const {
     std::lock_guard<std::mutex> lock(mutex_);

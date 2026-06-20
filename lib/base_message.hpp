@@ -3,7 +3,6 @@
 #include <chrono>
 #include <cstdint>
 #include <string>
-#include <cstdint>
 
 struct Message {
     uint64_t id = 0;

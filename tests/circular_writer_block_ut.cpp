@@ -8,6 +8,7 @@
 #include <vector>
 #include <atomic>
 #include <chrono>
+#include <cstdint>
 #include <optional>
 #include <utility>
 

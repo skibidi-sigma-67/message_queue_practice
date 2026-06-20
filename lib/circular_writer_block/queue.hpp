@@ -1,11 +1,14 @@
 #pragma once
 
+#include <base_message.hpp>
 #include <base_queue.hpp>
+#include <stats.hpp>
 
-#include <vector>
-#include <mutex>
 #include <condition_variable>
+#include <cstddef>
+#include <mutex>
 #include <optional>
+#include <vector>
 
 class CircularWriterBlockQueue : public BaseQueue {
 private:
