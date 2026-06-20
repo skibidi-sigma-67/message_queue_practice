@@ -4,8 +4,11 @@
 #include <mutex>
 #include <condition_variable>
 #include <optional>
+#include <cstddef>
 
 #include <base_queue.hpp>
+#include "stats.hpp"
+#include "base_message.hpp"
 
 class CircularDropOldestQueue : public BaseQueue {
 private:

@@ -1,6 +1,11 @@
 #include <queue.hpp>
+#include <base_queue.hpp>
+#include "base_message.hpp"
 
+#include <utility>
+#include <cstddef>
 #include <mutex>
+#include <optional>
 
 size_t CircularDropOldestQueue::Size() const {
     std::lock_guard<std::mutex> lock(mutex_);
