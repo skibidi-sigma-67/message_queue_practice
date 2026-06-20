@@ -104,7 +104,6 @@ dist/
 downloads/
 eggs/
 .eggs/
-lib/
 lib64/
 parts/
 sdist/
@@ -699,3 +698,4 @@ FodyWeavers.xsd
 # JetBrains Rider
 *.sln.iml
 
+compile_flags.txt

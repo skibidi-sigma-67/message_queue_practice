@@ -1,7 +1,7 @@
 #pragma once
 
-#include <base_message.hpp>
-#include <stats.hpp>
+#include "base_message.hpp"
+#include "stats.hpp"
 
 #include <cstddef>
 #include <optional>
