@@ -4,8 +4,8 @@
 #include <chrono>
 #include <optional>
 
-#include "base_message.hpp"
-#include "base_queue.hpp"
+#include <base_message.hpp>
+#include <base_queue.hpp>
 
 TEST(CircularDropOldestQueueTest, PushAndTryPop) {
     CircularDropOldestQueue queue(2);
