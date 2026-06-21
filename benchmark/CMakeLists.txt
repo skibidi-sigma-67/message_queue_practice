@@ -11,9 +11,13 @@ set(BENCHMARK_ENABLE_INSTALL OFF CACHE BOOL "Disable benchmark install" FORCE)
 
 FetchContent_MakeAvailable(googlebenchmark)
 
-# add_executable(message-queue-benchmark
-#
-# )
+add_executable(message-queue-benchmark
+    equal_rates.cpp
+    fast_producer.cpp
+    fast_consumer.cpp
+    random_bursts.cpp
+    mixed_priorities.cpp
+)
 
 target_link_libraries(message-queue-benchmark
     PRIVATE
