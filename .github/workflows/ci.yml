@@ -19,7 +19,7 @@ jobs:
 
       - name: Run clang-tidy
         run: |
-          find src include tests -type f \( -name "*.cpp" -o -name "*.hpp" \) | xargs clang-tidy -p build > tidy_log.txt 2>&1 || true
+          find src tests -type f -name "*.cpp" | xargs clang-tidy -p build --header-filter=".*" > tidy_log.txt 2>&1 || true
           WARNINGS=$(grep -cEi "warning:|error:" tidy_log.txt || echo "0")
           cat tidy_log.txt
           echo "{\"warnings\": $WARNINGS}" > codestyle.json
