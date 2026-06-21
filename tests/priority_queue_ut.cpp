@@ -3,7 +3,6 @@
 #include <thread>
 #include <chrono>
 #include <optional>
-#include <cstddef>
 
 #include <base_message.hpp>
 #include <base_queue.hpp>
