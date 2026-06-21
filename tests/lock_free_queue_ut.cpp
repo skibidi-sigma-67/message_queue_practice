@@ -185,15 +185,15 @@ TEST(LockFreeQueueTest, MultipleProducersMultipleConsumers) {
                     return;
                 }
 
-                const auto kId = static_cast<size_t>(popped->id);
-                if (kId >= kTotalMessages) {
+                const auto id = static_cast<size_t>(popped->id);
+                if (id >= kTotalMessages) {
                     invalid_count.fetch_add(1, std::memory_order_relaxed);
                 } else {
                     std::lock_guard<std::mutex> lock(seen_mutex);
-                    if (seen[kId]) {
+                    if (seen[id]) {
                         duplicate_count.fetch_add(1, std::memory_order_relaxed);
                     }
-                    seen[kId] = true;
+                    seen[id] = true;
                 }
                 consumed_count.fetch_add(1, std::memory_order_relaxed);
             }
