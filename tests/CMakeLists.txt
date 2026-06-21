@@ -16,6 +16,7 @@ enable_testing()
 
 add_executable(
     message-queue-lib-tests
+    lock_free_queue_ut.cpp
     circular_writer_block_ut.cpp
     blocking_bounded_queue_ut.cpp
     priority_queue_ut.cpp
@@ -26,6 +27,7 @@ target_link_libraries(
     message-queue-lib-tests
     GTest::gtest_main
     GTest::gmock_main
+    message_queue_policy_lock_free
     message_queue_policy_circular_writer_block
     message_queue_policy_blocking_bounded
     message_queue_priority_queue
