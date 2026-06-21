@@ -6,6 +6,7 @@ add_library(message_queue
     policies/circular_writer_block.cpp
     policies/lock_free_queue.cpp
     policies/priority_queue.cpp
+    factory.cpp
 )
 
 target_include_directories(message_queue PUBLIC ${CMAKE_SOURCE_DIR}/include)
