@@ -1,4 +1,6 @@
-# Ознакомительная практика, кейс #5
+[![CI Pipeline](https://github.com/skibidi-sigma-67/message_queue_practice/actions/workflows/ci.yml/badge.svg)](https://github.com/skibidi-sigma-67/message_queue_practice/actions/workflows/ci.yml)
+
+# Ознакомительная практика, кейс #5 
 
 Сравнение стратегий поведения очереди сообщений в
 многопоточном in-memory брокере на различных

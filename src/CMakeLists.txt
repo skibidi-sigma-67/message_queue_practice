@@ -1,11 +1,12 @@
-add_library(message_queue_core INTERFACE)
+find_package(Threads REQUIRED)
 
-target_include_directories(message_queue_core INTERFACE ${CMAKE_SOURCE_DIR}/lib)
+add_library(message_queue
+    policies/blocking_bounded_queue.cpp
+    policies/circular_drop_oldest_queue.cpp
+    policies/circular_writer_block.cpp
+    policies/lock_free_queue.cpp
+    policies/priority_queue.cpp
+)
 
-file(GLOB src_subdirs LIST_DIRECTORIES true "${CMAKE_CURRENT_SOURCE_DIR}/*")
-
-foreach(dir ${src_subdirs})
-  if(IS_DIRECTORY "${dir}" AND EXISTS "${dir}/CMakeLists.txt")
-    add_subdirectory("${dir}")
-  endif()
-endforeach()
+target_include_directories(message_queue PUBLIC ${CMAKE_SOURCE_DIR}/include)
+target_link_libraries(message_queue PUBLIC Threads::Threads)

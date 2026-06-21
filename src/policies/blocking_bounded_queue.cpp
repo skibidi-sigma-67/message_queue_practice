@@ -1,8 +1,8 @@
-#include <queue.hpp>
+#include <message_queue/policies/blocking_bounded_queue.hpp>
 
-#include <base_queue.hpp>
-#include <base_message.hpp>
-#include <stats.hpp>
+#include <message_queue/base_queue.hpp>
+#include <message_queue/base_message.hpp>
+#include <message_queue/stats.hpp>
 
 #include <utility>
 #include <cstddef>

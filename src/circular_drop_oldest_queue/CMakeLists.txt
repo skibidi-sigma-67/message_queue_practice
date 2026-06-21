@@ -1,7 +1,0 @@
-add_library(message_queue_policy_circular_drop_oldest
-    queue.cpp
-)
-
-target_link_libraries(message_queue_policy_circular_drop_oldest PUBLIC message_queue_core)
-
-target_include_directories(message_queue_policy_circular_drop_oldest PUBLIC ${CMAKE_SOURCE_DIR}/lib/circular_drop_oldest_queue)

@@ -1,8 +1,8 @@
 #include <gtest/gtest.h>
 
-#include <queue.hpp>
-#include <base_message.hpp>
-#include <base_queue.hpp>
+#include <message_queue/policies/circular_writer_block.hpp>
+#include <message_queue/base_message.hpp>
+#include <message_queue/base_queue.hpp>
 
 #include <thread>
 #include <vector>
