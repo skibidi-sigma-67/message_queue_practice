@@ -1,6 +1,9 @@
 #include <gtest/gtest.h>
 
 #include <lock_free_queue/queue.hpp>
+#include <base_message.hpp>
+#include <base_queue.hpp>
+
 
 #include <atomic>
 #include <chrono>
@@ -48,14 +51,14 @@ TEST(LockFreeQueueTest, PushAndTryPop) {
 TEST(LockFreeQueueTest, DoesNotDropMessagesWhenGrowing) {
     LockFreeQueue queue;
 
-    constexpr size_t message_count = 16;
-    for (size_t i = 0; i < message_count; ++i) {
+    constexpr size_t kMessageCount = 16;
+    for (size_t i = 0; i < kMessageCount; ++i) {
         EXPECT_EQ(queue.Push(MakeMessage(static_cast<uint64_t>(i))), PushStatus::kPushed);
     }
 
-    EXPECT_EQ(queue.Size(), message_count);
+    EXPECT_EQ(queue.Size(), kMessageCount);
 
-    for (size_t i = 0; i < message_count; ++i) {
+    for (size_t i = 0; i < kMessageCount; ++i) {
         auto popped = queue.TryPop();
         ASSERT_TRUE(popped.has_value());
         EXPECT_EQ(popped->id, i);
@@ -137,15 +140,15 @@ TEST(LockFreeQueueTest, SizeInvariants) {
     EXPECT_FALSE(queue.TryPop().has_value());
     EXPECT_EQ(queue.Size(), 0);
 
-    constexpr size_t message_count = 10;
-    for (size_t i = 0; i < message_count; ++i) {
+    constexpr size_t kMessageCount = 10;
+    for (size_t i = 0; i < kMessageCount; ++i) {
         queue.Push(MakeMessage(static_cast<uint64_t>(i)));
         EXPECT_EQ(queue.Size(), i + 1);
     }
 
-    for (size_t i = 0; i < message_count; ++i) {
+    for (size_t i = 0; i < kMessageCount; ++i) {
         EXPECT_TRUE(queue.TryPop().has_value());
-        EXPECT_EQ(queue.Size(), message_count - i - 1);
+        EXPECT_EQ(queue.Size(), kMessageCount - i - 1);
     }
 
     EXPECT_EQ(queue.Size(), 0);
@@ -155,21 +158,21 @@ TEST(LockFreeQueueTest, SizeInvariants) {
 TEST(LockFreeQueueTest, MultipleProducersMultipleConsumers) {
     LockFreeQueue queue;
 
-    constexpr size_t producer_count = 4;
-    constexpr size_t consumer_count = 4;
-    constexpr size_t messages_per_producer = 250;
-    constexpr size_t total_messages = producer_count * messages_per_producer;
+    constexpr size_t kProducerCount = 4;
+    constexpr size_t kConsumerCount = 4;
+    constexpr size_t kMessagesPerProducer = 250;
+    constexpr size_t kTotalMessages = kProducerCount * kMessagesPerProducer;
 
     std::atomic<size_t> consumed_count{0};
     std::atomic<size_t> failed_pushes{0};
     std::atomic<size_t> duplicate_count{0};
     std::atomic<size_t> invalid_count{0};
-    std::vector<bool> seen(total_messages, false);
+    std::vector<bool> seen(kTotalMessages, false);
     std::mutex seen_mutex;
 
     std::vector<std::thread> consumers;
-    consumers.reserve(consumer_count);
-    for (size_t consumer_id = 0; consumer_id < consumer_count; ++consumer_id) {
+    consumers.reserve(kConsumerCount);
+    for (size_t consumer_id = 0; consumer_id < kConsumerCount; ++consumer_id) {
         consumers.emplace_back([&queue,
                                 &consumed_count,
                                 &duplicate_count,
@@ -182,15 +185,15 @@ TEST(LockFreeQueueTest, MultipleProducersMultipleConsumers) {
                     return;
                 }
 
-                const auto id = static_cast<size_t>(popped->id);
-                if (id >= total_messages) {
+                const auto kId = static_cast<size_t>(popped->id);
+                if (kId >= kTotalMessages) {
                     invalid_count.fetch_add(1, std::memory_order_relaxed);
                 } else {
                     std::lock_guard<std::mutex> lock(seen_mutex);
-                    if (seen[id]) {
+                    if (seen[kId]) {
                         duplicate_count.fetch_add(1, std::memory_order_relaxed);
                     }
-                    seen[id] = true;
+                    seen[kId] = true;
                 }
                 consumed_count.fetch_add(1, std::memory_order_relaxed);
             }
@@ -198,11 +201,11 @@ TEST(LockFreeQueueTest, MultipleProducersMultipleConsumers) {
     }
 
     std::vector<std::thread> producers;
-    producers.reserve(producer_count);
-    for (size_t producer_id = 0; producer_id < producer_count; ++producer_id) {
+    producers.reserve(kProducerCount);
+    for (size_t producer_id = 0; producer_id < kProducerCount; ++producer_id) {
         producers.emplace_back([&queue, &failed_pushes, producer_id]() {
-            for (size_t index = 0; index < messages_per_producer; ++index) {
-                const size_t id = producer_id * messages_per_producer + index;
+            for (size_t index = 0; index < kMessagesPerProducer; ++index) {
+                const size_t id = producer_id * kMessagesPerProducer + index;
                 if (queue.Push(MakeMessage(static_cast<uint64_t>(id))) != PushStatus::kPushed) {
                     failed_pushes.fetch_add(1, std::memory_order_relaxed);
                 }
@@ -220,7 +223,7 @@ TEST(LockFreeQueueTest, MultipleProducersMultipleConsumers) {
     }
 
     EXPECT_EQ(failed_pushes.load(std::memory_order_relaxed), 0);
-    EXPECT_EQ(consumed_count.load(std::memory_order_relaxed), total_messages);
+    EXPECT_EQ(consumed_count.load(std::memory_order_relaxed), kTotalMessages);
     EXPECT_EQ(duplicate_count.load(std::memory_order_relaxed), 0);
     EXPECT_EQ(invalid_count.load(std::memory_order_relaxed), 0);
     EXPECT_EQ(queue.Size(), 0);
@@ -230,8 +233,8 @@ TEST(LockFreeQueueTest, MultipleProducersMultipleConsumers) {
     }
 
     auto stats = queue.GetStats();
-    EXPECT_EQ(stats.push_count, total_messages);
-    EXPECT_EQ(stats.pop_count, total_messages);
+    EXPECT_EQ(stats.push_count, kTotalMessages);
+    EXPECT_EQ(stats.pop_count, kTotalMessages);
     EXPECT_EQ(stats.dropout_count, 0);
     EXPECT_EQ(stats.failed_count, 0);
     EXPECT_EQ(stats.current_size, 0);
