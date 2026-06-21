@@ -1,8 +1,7 @@
 #include <queue.hpp>
-#include <utility>
 #include <algorithm>
+#include <utility>
 #include <functional>
-#include <mutex>
 
 bool PriorityQueue::PriorityNode::operator>(const PriorityNode& other) const {
     if (this->message.priority != other.message.priority) {

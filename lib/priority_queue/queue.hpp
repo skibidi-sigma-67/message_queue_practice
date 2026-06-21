@@ -1,13 +1,13 @@
 #pragma once
-#include <cstdint>
-#include <cstddef>
 #include <vector>
 #include <mutex>
 #include <condition_variable>
 #include <optional>
-#include "base_message.hpp" 
-#include "stats.hpp"
-
+#include <cstdint>
+#include <cstddef>
+#include <base_queue.hpp>
+#include <base_message.hpp>
+#include <stats.hpp>
 
 class PriorityQueue : public BaseQueue {
 private:
