@@ -66,18 +66,18 @@ jobs:
         if: always() && steps.build.outcome == 'success'
         run: |
           if ctest --test-dir build --output-on-failure -j $(nproc) > test_log.txt 2>&1; then
-            echo "TEST_STATUS=Passed" >> $GITHUB_ENV
+            echo "TEST_STATUS=✅" >> $GITHUB_ENV
           else
-            echo "TEST_STATUS=Failed" >> $GITHUB_ENV
+            echo "TEST_STATUS=❌" >> $GITHUB_ENV
           fi
           cat test_log.txt
 
       - name: Prepare Artifact Data
         if: always()
         run: |
-          CONF_STATUS="${{ steps.config.outcome == 'success' && 'Passed' || 'Failed' }}"
-          BUILD_STATUS="${{ steps.build.outcome == 'success' && 'Passed' || 'Failed' }}"
-          TEST_STAT="${{ env.TEST_STATUS || 'Failed' }}"
+          CONF_STATUS="${{ steps.config.outcome == 'success' && '✅' || '❌' }}"
+          BUILD_STATUS="${{ steps.build.outcome == 'success' && '✅' || '❌' }}"
+          TEST_STAT="${{ env.TEST_STATUS || '❌' }}"
 
           jq -n \
             --arg compiler "${{ matrix.config.name }}" \
@@ -99,7 +99,7 @@ jobs:
             test_log_${{ matrix.config.name }}.txt
 
       - name: Enforce Job Failure
-        if: always() && (steps.config.outcome == 'failure' || steps.build.outcome == 'failure' || env.TEST_STATUS == 'Failed')
+        if: always() && (steps.config.outcome == 'failure' || steps.build.outcome == 'failure' || env.TEST_STATUS == '❌')
         run: exit 1
 
   pr_comment:
@@ -130,8 +130,8 @@ jobs:
             } catch (e) {}
 
             const styleText = warningsCount === 0
-              ? 'Code style check: Passed (0 warnings)'
-              : `Code style check: Failed (${warningsCount} warnings)`;
+              ? 'Code style check: Passed ✅ (0 warnings)'
+              : `Code style check: Failed ❌ (${warningsCount} warnings)`;
 
             const compilers = ['gcc', 'gcc-san', 'clang', 'clang-san'];
             const matrixResults = {};
@@ -139,12 +139,12 @@ jobs:
             let anyFailures = false;
 
             compilers.forEach(c => {
-              matrixResults[c] = { configured: 'Skipped', built: 'Skipped', tested: 'Skipped' };
+              matrixResults[c] = { configured: '⏳', built: '⏳', tested: '⏳' };
 
               try {
                 const data = JSON.parse(fs.readFileSync(`artifacts/matrix_${c}.json`));
                 matrixResults[c] = data;
-                if (data.tested === 'Failed' || data.built === 'Failed' || data.configured === 'Failed') {
+                if (data.tested.includes('❌') || data.built.includes('❌') || data.configured.includes('❌')) {
                   anyFailures = true;
                 }
               } catch(e) {}
@@ -155,7 +155,7 @@ jobs:
                 let match;
                 while ((match = testRegex.exec(log)) !== null) {
                   const tName = match[1];
-                  const tStatus = match[2] === 'Passed' ? 'Passed' : 'Failed';
+                  const tStatus = match[2] === 'Passed' ? '✅' : '❌';
                   if (!testResults[tName]) testResults[tName] = {};
                   testResults[tName][c] = tStatus;
                 }
@@ -163,8 +163,8 @@ jobs:
             });
 
             const overallTests = anyFailures
-              ? 'Status: Some checks failed.'
-              : 'Status: All tests passed successfully.';
+              ? 'Status: Some checks failed ❌'
+              : 'Status: All tests passed successfully ✅🎉';
 
             let tableHeader = `| Stage / Test | ` + compilers.map(c => `\`${c}\``).join(' | ') + ` |`;
             let tableDivider = `|:---|` + compilers.map(() => `:---:`).join('|') + `|`;
@@ -177,7 +177,7 @@ jobs:
             const testNames = Object.keys(testResults).sort();
             if (testNames.length > 0) {
               testNames.forEach(tName => {
-                let row = `| **${tName}** | ` + compilers.map(c => testResults[tName][c] || 'Skipped').join(' | ') + ` |`;
+                let row = `| **${tName}** | ` + compilers.map(c => testResults[tName][c] || '⏭️').join(' | ') + ` |`;
                 bodyRows.push(row);
               });
             } else {
@@ -187,7 +187,7 @@ jobs:
 
             const commitHash = context.payload.pull_request.head.sha.substring(0, 7);
 
-            const body = `## CI Report
+            const body = `## 📊 CI Report
 
             ### Overview
             * ${overallTests}
