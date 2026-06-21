@@ -8,7 +8,7 @@
 
 bool PriorityQueue::PriorityNode::operator>(const PriorityNode& other) const {
     if (this->message.priority != other.message.priority) {
-        return this->message.priority > other.message.priority; 
+        return this->message.priority < other.message.priority; 
     }
     return this->seq_id > other.seq_id;
 }
