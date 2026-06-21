@@ -1,12 +1,12 @@
 #include <gtest/gtest.h>
-#include <queue.hpp>
+#include <message_queue/policies/priority_queue.hpp>
 #include <thread>
 #include <chrono>
 #include <optional>
 
-#include <base_message.hpp>
-#include <base_queue.hpp>
-#include <base_queue.hpp>
+#include <message_queue/base_message.hpp>
+#include <message_queue/base_queue.hpp>
+#include <message_queue/base_queue.hpp>
 
 
 TEST(PriorityQueueTest, PushAndTryPop) {

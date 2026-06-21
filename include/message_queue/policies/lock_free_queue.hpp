@@ -1,8 +1,8 @@
 #pragma once
 
-#include <base_queue.hpp>
-#include <base_message.hpp>
-#include <stats.hpp>
+#include <message_queue/base_queue.hpp>
+#include <message_queue/base_message.hpp>
+#include <message_queue/stats.hpp>
 
 #include <atomic>
 #include <cstddef>

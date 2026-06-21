@@ -1,7 +1,0 @@
-add_library(message_queue_policy_blocking_bounded
-    queue.cpp
-)
-
-target_link_libraries(message_queue_policy_blocking_bounded PUBLIC message_queue_core)
-
-target_include_directories(message_queue_policy_blocking_bounded PUBLIC ${CMAKE_SOURCE_DIR}/lib/blocking_bounded_queue)

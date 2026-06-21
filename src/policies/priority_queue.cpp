@@ -1,4 +1,4 @@
-#include <queue.hpp>
+#include <message_queue/policies/priority_queue.hpp>
 #include <algorithm>
 #include <utility>
 #include <functional>
@@ -6,9 +6,9 @@
 #include <optional>
 #include <cstddef>
 
-#include <base_message.hpp>
-#include <base_queue.hpp>
-#include <stats.hpp>
+#include <message_queue/base_message.hpp>
+#include <message_queue/base_queue.hpp>
+#include <message_queue/stats.hpp>
 
 bool PriorityQueue::PriorityNode::operator>(const PriorityNode& other) const {
     if (this->message.priority != other.message.priority) {

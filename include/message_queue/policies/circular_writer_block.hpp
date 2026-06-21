@@ -1,19 +1,22 @@
 #pragma once
 
-#include <base_queue.hpp>
-#include <base_message.hpp>
-#include <stats.hpp>
+#include <message_queue/base_message.hpp>
+#include <message_queue/base_queue.hpp>
+#include <message_queue/stats.hpp>
 
-#include <cstddef>
-#include <deque>
-#include <mutex>
 #include <condition_variable>
+#include <cstddef>
+#include <mutex>
 #include <optional>
+#include <vector>
 
-class BlockingBoundedQueue : public BaseQueue {
+class CircularWriterBlockQueue : public BaseQueue {
 private:
-    std::deque<Message> queue_;
+    std::vector<Message> buffer_;
     size_t capacity_;
+    size_t head_ = 0;
+    size_t tail_ = 0;
+    size_t size_ = 0;
     bool is_closed_ = false;
 
     mutable std::mutex mutex_;
@@ -22,10 +25,10 @@ private:
 
     QueueStats stats_{0, 0, 0, 0, 0};
 public:
-    explicit BlockingBoundedQueue(size_t capacity)
-        : capacity_(capacity) {}
+    explicit CircularWriterBlockQueue(size_t capacity)
+        : buffer_(capacity), capacity_(capacity) {}
 
-    ~BlockingBoundedQueue() override = default;
+    ~CircularWriterBlockQueue() override = default;
 
     size_t Size() const override;
 

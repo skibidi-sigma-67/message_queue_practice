@@ -5,9 +5,9 @@
 #include <optional>
 #include <cstdint>
 #include <cstddef>
-#include <base_queue.hpp>
-#include <base_message.hpp>
-#include <stats.hpp>
+#include <message_queue/base_queue.hpp>
+#include <message_queue/base_message.hpp>
+#include <message_queue/stats.hpp>
 
 class PriorityQueue : public BaseQueue {
 private:

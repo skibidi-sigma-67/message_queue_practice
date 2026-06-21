@@ -6,9 +6,9 @@
 #include <optional>
 #include <cstddef>
 
-#include <base_queue.hpp>
-#include <stats.hpp>
-#include <base_message.hpp>
+#include <message_queue/base_queue.hpp>
+#include <message_queue/stats.hpp>
+#include <message_queue/base_message.hpp>
 
 class CircularDropOldestQueue : public BaseQueue {
 private:

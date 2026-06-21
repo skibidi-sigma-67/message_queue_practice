@@ -27,14 +27,10 @@ target_link_libraries(
     message-queue-lib-tests
     GTest::gtest_main
     GTest::gmock_main
-    message_queue_policy_lock_free
-    message_queue_policy_circular_writer_block
-    message_queue_policy_blocking_bounded
-    message_queue_priority_queue
-    message_queue_policy_circular_drop_oldest
+    message_queue
 )
 
-target_include_directories(message-queue-lib-tests PUBLIC ${PROJECT_SOURCE_DIR})
+target_include_directories(message-queue-lib-tests PUBLIC ${PROJECT_SOURCE_DIR}/include)
 
 include(GoogleTest)
 
