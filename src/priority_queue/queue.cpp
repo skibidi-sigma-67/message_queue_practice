@@ -6,8 +6,9 @@
 #include <optional>
 #include <cstddef>
 
-#include <stats.hpp>
 #include <base_message.hpp>
+#include <base_queue.hpp>
+#include <stats.hpp>
 
 bool PriorityQueue::PriorityNode::operator>(const PriorityNode& other) const {
     if (this->message.priority != other.message.priority) {
