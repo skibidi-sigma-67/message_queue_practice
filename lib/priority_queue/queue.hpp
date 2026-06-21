@@ -5,8 +5,8 @@
 #include <mutex>
 #include <condition_variable>
 #include <optional>
-#include "../../lib/base_message.hpp" 
-#include "../../lib/stats.hpp"
+#include "base_message.hpp" 
+#include "stats.hpp"
 
 
 class PriorityQueue : public BaseQueue {

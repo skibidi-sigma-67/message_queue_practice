@@ -1,5 +1,4 @@
 #include <queue.hpp>
-#include <queue.hpp>
 #include <utility>
 #include <algorithm>
 #include <functional>
