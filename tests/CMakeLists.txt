@@ -17,6 +17,9 @@ enable_testing()
 add_executable(
     message-queue-lib-tests
     circular_writer_block_ut.cpp
+    blocking_bounded_queue_ut.cpp
+    priority_queue_ut.cpp
+    circular_drop_oldest_queue_ut.cpp
 )
 
 target_link_libraries(
@@ -24,6 +27,9 @@ target_link_libraries(
     GTest::gtest_main
     GTest::gmock_main
     message_queue_policy_circular_writer_block
+    message_queue_policy_blocking_bounded
+    message_queue_priority_queue
+    message_queue_policy_circular_drop_oldest
 )
 
 target_include_directories(message-queue-lib-tests PUBLIC ${PROJECT_SOURCE_DIR})
