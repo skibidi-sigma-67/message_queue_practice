@@ -5,9 +5,11 @@
 #include <message_queue/policies/circular_writer_block.hpp>
 #include <message_queue/policies/priority_queue.hpp>
 #include <message_queue/policies/lock_free_queue.hpp>
+#include <message_queue/base_queue.hpp>
 
 #include <stdexcept>
 #include <memory>
+#include <cstddef>
 
 std::unique_ptr<BaseQueue> CreateQueue(QueuePolicy policy, size_t capacity) {
     switch (policy) {
