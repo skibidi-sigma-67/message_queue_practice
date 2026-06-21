@@ -5,12 +5,12 @@
 #include <memory>
 #include <cstddef>
 
-enum class QueuePolicy {
-    kBlockingBounded,
-    kCircularDropOldest,
-    kCircularWriterBlock,
-    kPriority,
-    kLockFree
+enum class QueuePolicy : size_t {
+    kBlockingBounded     = 0,
+    kCircularDropOldest  = 1,
+    kCircularWriterBlock = 2,
+    kPriority            = 3,
+    kLockFree            = 4,
 };
 
 std::unique_ptr<BaseQueue> CreateQueue(QueuePolicy policy, size_t capacity);
