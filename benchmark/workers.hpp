@@ -31,7 +31,7 @@ inline void Producer(
 
     while (!stop_signal.load(std::memory_order_acquire)) {
         Message generated_message;
-        generated_message.id = thread_id;
+        generated_message.producer_id = thread_id;
 
         if constexpr (UseRandomPriority) {
             generated_message.priority = random_number_generator() % 10;
@@ -79,7 +79,7 @@ inline void Consumer(
 
         if (received_message.has_value()) {
             latencies.push_back(latency_microseconds);
-            consumed_counts[received_message->id]++;
+            consumed_counts[received_message->producer_id]++;
 
             if constexpr (UseExponentialDelay) {
                 long long random_delay_count = static_cast<long long>(exponential_distribution(random_number_generator));
