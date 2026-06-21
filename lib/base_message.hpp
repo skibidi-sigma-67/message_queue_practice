@@ -1,8 +1,8 @@
 #pragma once
 
 #include <chrono>
-#include <string>
 #include <cstdint>
+#include <string>
 
 struct Message {
     uint64_t id = 0;
