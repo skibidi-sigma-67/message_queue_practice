@@ -34,6 +34,9 @@ private:
 
     void RetireNode(Node* node) noexcept;
     void DeleteAllNodes() noexcept;
+    void ScanRetiredNodes() noexcept;
+    void PushRetiredNode(Node* node) noexcept;
+    static bool IsNodeHazard(Node* node) noexcept;
 
     std::atomic<Node*> head_{nullptr};
     std::atomic<Node*> tail_{nullptr};
