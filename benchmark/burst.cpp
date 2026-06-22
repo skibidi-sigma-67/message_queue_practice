@@ -1,16 +1,16 @@
 #include "fixture.hpp"
 #include "burst_benchmark.hpp"
 
+#include <cstddef>
+
 BENCHMARK_DEFINE_F(QueueBenchmarkFixture, BurstWriteThenRead)(benchmark::State& state) {
-    int num_producers = 4;
-    int num_consumers = 4;
-    int burst_size = 500;
+    size_t burst_size = 500;
 
     RunBurstScenario(
         state,
         queue.get(),
-        num_producers,
-        num_consumers,
+        state.range(2),
+        state.range(3),
         burst_size
     );
 }

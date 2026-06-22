@@ -5,7 +5,8 @@ BENCHMARK_DEFINE_F(QueueBenchmarkFixture, MixedPriorities)(benchmark::State& sta
     RunContinuousScenario<false, true, false>(
         state,
         queue.get(),
-        4, 4,
+        state.range(2),
+        state.range(3),
         std::chrono::microseconds(10),
         std::chrono::microseconds(10)
     );

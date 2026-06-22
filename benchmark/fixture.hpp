@@ -24,11 +24,17 @@ public:
     }
 };
 
+/*
+    state.range(0) - Policy
+    state.range(1) - Queue Capacity
+    state.range(2) - Producer Count
+    state.range(3) - Consumer Count
+*/
 #define REGISTER_QUEUE_BENCHMARK(BenchmarkName) \
         BENCHMARK_REGISTER_F(QueueBenchmarkFixture, BenchmarkName) \
-            ->Args({static_cast<size_t>(QueuePolicy::kBlockingBounded),     1024}) \
-            ->Args({static_cast<size_t>(QueuePolicy::kCircularDropOldest),  1024}) \
-            ->Args({static_cast<size_t>(QueuePolicy::kCircularWriterBlock), 1024}) \
-            ->Args({static_cast<size_t>(QueuePolicy::kPriority),            1024}) \
-            ->Args({static_cast<size_t>(QueuePolicy::kLockFree),            1024}) \
+            ->Args({static_cast<size_t>(QueuePolicy::kBlockingBounded),     1024, 4, 4}) \
+            ->Args({static_cast<size_t>(QueuePolicy::kCircularDropOldest),  1024, 4, 4}) \
+            ->Args({static_cast<size_t>(QueuePolicy::kCircularWriterBlock), 1024, 4, 4}) \
+            ->Args({static_cast<size_t>(QueuePolicy::kPriority),            1024, 4, 4}) \
+            ->Args({static_cast<size_t>(QueuePolicy::kLockFree),            1024, 4, 4}) \
             ->UseRealTime();
