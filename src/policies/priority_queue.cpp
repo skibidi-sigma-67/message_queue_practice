@@ -9,10 +9,11 @@
 #include <message_queue/base_message.hpp>
 #include <message_queue/base_queue.hpp>
 #include <message_queue/stats.hpp>
+#include <message_queue/utils.hpp>
 
 bool PriorityQueue::PriorityNode::operator>(const PriorityNode& other) const {
     if (this->message.priority != other.message.priority) {
-        return this->message.priority < other.message.priority; 
+        return this->message.priority < other.message.priority;
     }
     return this->seq_id > other.seq_id;
 }
@@ -29,9 +30,9 @@ QueueStats PriorityQueue::GetStats() const {
 
 PushStatus PriorityQueue::Push(Message message) {
     std::lock_guard<std::mutex> lock(mutex_);
-    
+
     if (is_closed_) {
-        return PushStatus::kError; 
+        return PushStatus::kError;
     }
 
     heap_.push_back({std::move(message), next_seq_id_++});
@@ -42,7 +43,7 @@ PushStatus PriorityQueue::Push(Message message) {
     stats_.current_size = heap_.size();
 
     not_empty_.notify_one();
-    
+
     return PushStatus::kPushed;
 }
 
@@ -67,9 +68,12 @@ std::optional<Message> PriorityQueue::TryPop() {
 std::optional<Message> PriorityQueue::WaitPop() {
     std::unique_lock<std::mutex> lock(mutex_);
 
-    not_empty_.wait(lock, [this]() { 
-        return !heap_.empty() || is_closed_; 
+    auto latency = MeasureExecutionTime([&]() {
+        not_empty_.wait(lock, [this]() {
+            return !heap_.empty() || is_closed_;
+        });
     });
+    stats_.block_time_ms += latency / 1000.0;
 
     if (heap_.empty() && is_closed_) {
         return std::nullopt;

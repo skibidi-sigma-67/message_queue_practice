@@ -2,6 +2,7 @@
 #include <message_queue/base_queue.hpp>
 #include <message_queue/base_message.hpp>
 #include <message_queue/stats.hpp>
+#include <message_queue/utils.hpp>
 
 #include <utility>
 #include <cstddef>
@@ -25,10 +26,10 @@ QueueStats CircularDropOldestQueue::GetStats() const {
 
 PushStatus CircularDropOldestQueue::Push(Message message) {
     std::lock_guard<std::mutex> lock(mutex_);
-    
+
     if (is_closed_) {
         ++stats_.failed_count;
-        return PushStatus::kError; 
+        return PushStatus::kError;
     }
 
     PushStatus status = PushStatus::kPushed;
@@ -37,23 +38,23 @@ PushStatus CircularDropOldestQueue::Push(Message message) {
         head_ = (head_ + 1) % capacity_;
         ++stats_.dropout_count;
         status = PushStatus::kDropped;
-    } 
+    }
     else {
         ++size_;
     }
 
     buffer_[tail_] = std::move(message);
     tail_ = (tail_ + 1) % capacity_;
-    
+
     ++stats_.push_count;
-    cv_.notify_one(); 
+    cv_.notify_one();
 
     return status;
 }
 
 std::optional<Message> CircularDropOldestQueue::TryPop() {
     std::lock_guard<std::mutex> lock(mutex_);
-    
+
     if (size_ == 0) {
         return std::nullopt;
     }
@@ -68,10 +69,13 @@ std::optional<Message> CircularDropOldestQueue::TryPop() {
 
 std::optional<Message> CircularDropOldestQueue::WaitPop() {
     std::unique_lock<std::mutex> lock(mutex_);
-    
-    cv_.wait(lock, [this]() { 
-        return size_ > 0 || is_closed_; 
+
+    auto latency = MeasureExecutionTime([&]() {
+        cv_.wait(lock, [this]() {
+            return size_ > 0 || is_closed_;
+        });
     });
+    stats_.block_time_ms += latency / 1000.0;
 
     if (size_ == 0 && is_closed_) {
         return std::nullopt;
@@ -87,8 +91,7 @@ std::optional<Message> CircularDropOldestQueue::WaitPop() {
 
 void CircularDropOldestQueue::Close() {
     std::lock_guard<std::mutex> lock(mutex_);
-    
-    is_closed_ = true;
-    cv_.notify_all(); 
-}
 
+    is_closed_ = true;
+    cv_.notify_all();
+}

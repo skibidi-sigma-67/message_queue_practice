@@ -3,6 +3,7 @@
 #include <message_queue/base_message.hpp>
 #include <message_queue/base_queue.hpp>
 #include <message_queue/stats.hpp>
+#include <message_queue/utils.hpp>
 
 #include <condition_variable>
 #include <cstddef>
@@ -25,9 +26,13 @@ QueueStats CircularWriterBlockQueue::GetStats() const {
 
 PushStatus CircularWriterBlockQueue::Push(Message message) {
     std::unique_lock<std::mutex> lock(mutex_);
-    cv_not_full_.wait(lock, [this]() {
-        return size_ < capacity_ || is_closed_;
+
+    auto latency = MeasureExecutionTime([&]() {
+        cv_not_full_.wait(lock, [this]() {
+            return size_ < capacity_ || is_closed_;
+        });
     });
+    stats_.block_time_ms += latency / 1000.0;
 
     if (is_closed_) {
         ++stats_.failed_count;
@@ -60,9 +65,13 @@ std::optional<Message> CircularWriterBlockQueue::TryPop() {
 
 std::optional<Message> CircularWriterBlockQueue::WaitPop() {
     std::unique_lock<std::mutex> lock(mutex_);
-    cv_not_empty_.wait(lock, [this]() {
-        return size_ > 0 || is_closed_;
+
+    auto latency = MeasureExecutionTime([&]() {
+        cv_not_empty_.wait(lock, [this]() {
+            return size_ > 0 || is_closed_;
+        });
     });
+    stats_.block_time_ms += latency / 1000.0;
 
     if (size_ == 0 && is_closed_) {
         return std::nullopt;
