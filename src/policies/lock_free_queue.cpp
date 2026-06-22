@@ -3,6 +3,7 @@
 #include <message_queue/base_message.hpp>
 #include <message_queue/base_queue.hpp>
 #include <message_queue/stats.hpp>
+#include <message_queue/utils.hpp>
 
 #include <array>
 #include <atomic>
@@ -148,6 +149,7 @@ QueueStats LockFreeQueue::GetStats() const {
         dropout_count_.load(std::memory_order_relaxed),
         failed_count_.load(std::memory_order_relaxed),
         size_.load(std::memory_order_relaxed),
+        block_time_ms_.load(std::memory_order_relaxed),
     };
 }
 
@@ -287,7 +289,10 @@ std::optional<Message> LockFreeQueue::WaitPop() {
             return std::nullopt;
         }
 
-        wake_sequence_.wait(observed_wake_sequence, std::memory_order_acquire);
+        auto latency = MeasureExecutionTime([&]() {
+            wake_sequence_.wait(observed_wake_sequence, std::memory_order_acquire);
+        });
+        block_time_ms_.fetch_add(latency / 1000.0, std::memory_order_relaxed);
     }
 }
 
