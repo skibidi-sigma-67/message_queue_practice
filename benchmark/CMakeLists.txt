@@ -17,6 +17,7 @@ add_executable(message-queue-benchmark
     fast_consumer.cpp
     random_bursts.cpp
     mixed_priorities.cpp
+    burst.cpp
 )
 
 target_link_libraries(message-queue-benchmark
