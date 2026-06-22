@@ -98,14 +98,14 @@ inline void Consumer(
 inline void BurstProducer(
     BaseQueue* target_queue,
     int thread_id,
-    int messages_to_push,
+    int messages_to_push_count,
     std::atomic<bool>& start_signal
 ) {
     while (!start_signal.load(std::memory_order_acquire)) {
         std::this_thread::yield();
     }
 
-    for (int i = 0; i < messages_to_push; ++i) {
+    for (int i = 0; i < messages_to_push_count; ++i) {
         Message msg;
         msg.producer_id = thread_id;
         target_queue->Push(msg);

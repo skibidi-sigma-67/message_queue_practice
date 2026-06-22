@@ -3,18 +3,17 @@
 #include <benchmark/benchmark.h>
 #include <message_queue/base_queue.hpp>
 #include "utils.hpp"
+#include "workers.hpp"
 
 #include <atomic>
 #include <thread>
 #include <vector>
 
-#include "workers.hpp"
-
 inline void RunBurstScenario(
     benchmark::State& state,
     BaseQueue* target_queue,
-    int num_producers,
-    int num_consumers,
+    int producer_count,
+    int consumer_count,
     int messages_per_producer
 ) {
     for (auto _ : state) {
@@ -22,9 +21,9 @@ inline void RunBurstScenario(
 
         std::atomic<bool> start_signal_write{false};
         std::vector<std::thread> producers;
-        producers.reserve(num_producers);
+        producers.reserve(producer_count);
 
-        for (int i = 0; i < num_producers; ++i) {
+        for (int i = 0; i < producer_count; ++i) {
             producers.emplace_back(
                 BurstProducer,
                 target_queue,
@@ -45,9 +44,9 @@ inline void RunBurstScenario(
 
         std::atomic<bool> start_signal_read{false};
         std::vector<std::thread> consumers;
-        consumers.reserve(num_consumers);
+        consumers.reserve(consumer_count);
 
-        for (int i = 0; i < num_consumers; ++i) {
+        for (int i = 0; i < consumer_count; ++i) {
             consumers.emplace_back(
                 BurstConsumer,
                 target_queue,
