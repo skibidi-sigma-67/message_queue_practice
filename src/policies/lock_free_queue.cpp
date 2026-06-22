@@ -149,7 +149,7 @@ QueueStats LockFreeQueue::GetStats() const {
         dropout_count_.load(std::memory_order_relaxed),
         failed_count_.load(std::memory_order_relaxed),
         size_.load(std::memory_order_relaxed),
-        block_time_ms_.load(std::memory_order_relaxed),
+        block_time_ns_.load(std::memory_order_relaxed),
     };
 }
 
@@ -292,7 +292,7 @@ std::optional<Message> LockFreeQueue::WaitPop() {
         auto latency = MeasureExecutionTime([&]() {
             wake_sequence_.wait(observed_wake_sequence, std::memory_order_acquire);
         });
-        block_time_ms_.fetch_add(latency / 1000.0, std::memory_order_relaxed);
+        block_time_ns_.fetch_add(latency, std::memory_order_relaxed);
     }
 }
 

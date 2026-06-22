@@ -32,7 +32,7 @@ PushStatus BlockingBoundedQueue::Push(Message message) {
             return queue_.size() < capacity_ || is_closed_;
         });
     });
-    stats_.block_time_ms += latency / 1000.0;
+    stats_.block_time_ns += latency;
 
     if (is_closed_) {
         ++stats_.failed_count;
@@ -68,7 +68,7 @@ std::optional<Message> BlockingBoundedQueue::WaitPop() {
             return !queue_.empty() || is_closed_;
         });
     });
-    stats_.block_time_ms += latency / 1000.0;
+    stats_.block_time_ns += latency;
 
     if (queue_.empty() && is_closed_) {
         return std::nullopt;

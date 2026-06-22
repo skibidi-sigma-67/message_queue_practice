@@ -37,7 +37,7 @@ inline void SetQueueStatsCounters(benchmark::State& state, BaseQueue* queue) {
     state.counters["queue_pushed"] = stats.push_count / iterations;
     state.counters["queue_popped"] = stats.pop_count / iterations;
     state.counters["queue_dropped"] = stats.dropout_count / iterations;
-    state.counters["queue_blocked_ms"] = stats.block_time_ms / iterations;
+    state.counters["queue_blocked_ns"] = stats.block_time_ns / iterations;
 }
 
 inline void SetFairnessCounter(benchmark::State& state, const std::vector<std::map<int, int>>& all_consumer_counts) {

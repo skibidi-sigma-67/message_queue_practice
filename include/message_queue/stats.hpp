@@ -8,5 +8,5 @@ struct QueueStats {
     size_t dropout_count = 0;
     size_t failed_count = 0;
     size_t current_size = 0;
-    double block_time_ms = 0.0;
+    double block_time_ns = 0.0;
 };

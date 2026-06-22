@@ -32,7 +32,7 @@ PushStatus CircularWriterBlockQueue::Push(Message message) {
             return size_ < capacity_ || is_closed_;
         });
     });
-    stats_.block_time_ms += latency / 1000.0;
+    stats_.block_time_ns += latency;
 
     if (is_closed_) {
         ++stats_.failed_count;
@@ -71,7 +71,7 @@ std::optional<Message> CircularWriterBlockQueue::WaitPop() {
             return size_ > 0 || is_closed_;
         });
     });
-    stats_.block_time_ms += latency / 1000.0;
+    stats_.block_time_ns += latency;
 
     if (size_ == 0 && is_closed_) {
         return std::nullopt;

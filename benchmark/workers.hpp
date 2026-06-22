@@ -38,11 +38,11 @@ inline void Producer(
             generated_message.priority = random_number_generator() % 10;
         }
 
-        double latency_microseconds = MeasureExecutionTime([&]() {
+        double latency_nanoseconds = MeasureExecutionTime([&]() {
             target_queue->Push(generated_message);
         });
 
-        latencies.push_back(latency_microseconds);
+        latencies.push_back(latency_nanoseconds);
 
         if constexpr (UseExponentialDelay) {
             long long random_delay_count = static_cast<long long>(exponential_distribution(random_number_generator));
@@ -74,12 +74,12 @@ inline void Consumer(
     }
 
     while (!stop_signal.load(std::memory_order_acquire)) {
-        auto [received_message, latency_microseconds] = MeasureExecutionTime([&]() {
+        auto [received_message, latency_nanoseconds] = MeasureExecutionTime([&]() {
             return target_queue->TryPop();
         });
 
         if (received_message.has_value()) {
-            latencies.push_back(latency_microseconds);
+            latencies.push_back(latency_nanoseconds);
             consumed_counts[received_message->producer_id]++;
 
             if constexpr (UseExponentialDelay) {
