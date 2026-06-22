@@ -32,9 +32,16 @@ public:
 */
 #define REGISTER_QUEUE_BENCHMARK(BenchmarkName) \
         BENCHMARK_REGISTER_F(QueueBenchmarkFixture, BenchmarkName) \
-            ->Args({static_cast<size_t>(QueuePolicy::kBlockingBounded),     1024, 4, 4}) \
-            ->Args({static_cast<size_t>(QueuePolicy::kCircularDropOldest),  1024, 4, 4}) \
-            ->Args({static_cast<size_t>(QueuePolicy::kCircularWriterBlock), 1024, 4, 4}) \
-            ->Args({static_cast<size_t>(QueuePolicy::kPriority),            1024, 4, 4}) \
-            ->Args({static_cast<size_t>(QueuePolicy::kLockFree),            1024, 4, 4}) \
+            ->ArgsProduct({ \
+                { \
+                    static_cast<int64_t>(QueuePolicy::kBlockingBounded), \
+                    static_cast<int64_t>(QueuePolicy::kCircularDropOldest), \
+                    static_cast<int64_t>(QueuePolicy::kCircularWriterBlock), \
+                    static_cast<int64_t>(QueuePolicy::kPriority), \
+                    static_cast<int64_t>(QueuePolicy::kLockFree) \
+                }, \
+                {1024}, \
+                {1, 4}, \
+                {1, 4} \
+            }) \
             ->UseRealTime();

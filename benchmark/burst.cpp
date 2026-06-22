@@ -4,7 +4,7 @@
 #include <cstddef>
 
 BENCHMARK_DEFINE_F(QueueBenchmarkFixture, BurstWriteThenRead)(benchmark::State& state) {
-    size_t burst_size = 500;
+    size_t burst_size = state.range(1) / state.range(2);
 
     RunBurstScenario(
         state,
