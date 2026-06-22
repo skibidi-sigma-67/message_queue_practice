@@ -40,8 +40,10 @@ public:
                     static_cast<int64_t>(QueuePolicy::kPriority), \
                     static_cast<int64_t>(QueuePolicy::kLockFree) \
                 }, \
-                {1024}, \
+                {1024, 65536}, \
                 {1, 4}, \
                 {1, 4} \
             }) \
+            ->Repetitions(3) \
+            ->DisplayAggregatesOnly(true) \
             ->UseRealTime();
