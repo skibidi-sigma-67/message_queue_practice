@@ -48,6 +48,7 @@ private:
     std::atomic<size_t> pop_count_{0};
     std::atomic<size_t> dropout_count_{0};
     std::atomic<size_t> failed_count_{0};
+    std::atomic<size_t> block_time_ns_{0};
 
     std::atomic<size_t> wake_sequence_{0};
 

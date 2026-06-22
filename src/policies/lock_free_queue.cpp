@@ -6,6 +6,7 @@
 
 #include <array>
 #include <atomic>
+#include <chrono>
 #include <cstddef>
 #include <optional>
 #include <utility>
@@ -142,12 +143,16 @@ size_t LockFreeQueue::Size() const {
 }
 
 QueueStats LockFreeQueue::GetStats() const {
+    constexpr double kNanosecondsPerMillisecond = 1'000'000.0;
+
     return QueueStats{
         push_count_.load(std::memory_order_relaxed),
         pop_count_.load(std::memory_order_relaxed),
         dropout_count_.load(std::memory_order_relaxed),
         failed_count_.load(std::memory_order_relaxed),
         size_.load(std::memory_order_relaxed),
+        static_cast<double>(block_time_ns_.load(std::memory_order_relaxed)) /
+            kNanosecondsPerMillisecond,
     };
 }
 
@@ -287,7 +292,15 @@ std::optional<Message> LockFreeQueue::WaitPop() {
             return std::nullopt;
         }
 
+        auto wait_start = std::chrono::steady_clock::now();
         wake_sequence_.wait(observed_wake_sequence, std::memory_order_acquire);
+        auto wait_end = std::chrono::steady_clock::now();
+
+        block_time_ns_.fetch_add(
+            static_cast<size_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(
+                                    wait_end - wait_start)
+                                    .count()),
+            std::memory_order_relaxed);
     }
 }
 
