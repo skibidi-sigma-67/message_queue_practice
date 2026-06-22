@@ -1,11 +1,12 @@
 #include "fixture.hpp"
-#include "benchmark_runner.hpp"
+#include "continuous_benchmark.hpp"
 
 BENCHMARK_DEFINE_F(QueueBenchmarkFixture, FastProducer)(benchmark::State& state) {
-    RunBenchmarkScenario<false, false, false>(
-        state, queue.get(), 
-        4, 4, 
-        std::chrono::microseconds(0), 
+    RunContinuousScenario<false, false, false>(
+        state,
+        queue.get(),
+        4, 4,
+        std::chrono::microseconds(0),
         std::chrono::microseconds(50)
     );
 }
