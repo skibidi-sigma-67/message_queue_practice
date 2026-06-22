@@ -3,6 +3,7 @@
 #include <message_queue/base_queue.hpp>
 #include <message_queue/base_message.hpp>
 #include <message_queue/stats.hpp>
+#include <message_queue/utils.hpp>
 
 #include <utility>
 #include <cstddef>
@@ -25,9 +26,13 @@ QueueStats BlockingBoundedQueue::GetStats() const {
 
 PushStatus BlockingBoundedQueue::Push(Message message) {
     std::unique_lock<std::mutex> lock(mutex_);
-    cv_not_full_.wait(lock, [this]() {
-        return queue_.size() < capacity_ || is_closed_;
+
+    auto latency = MeasureExecutionTime([&]() {
+        cv_not_full_.wait(lock, [this]() {
+            return queue_.size() < capacity_ || is_closed_;
+        });
     });
+    stats_.block_time_ms += latency / 1000.0;
 
     if (is_closed_) {
         ++stats_.failed_count;
@@ -57,9 +62,13 @@ std::optional<Message> BlockingBoundedQueue::TryPop() {
 
 std::optional<Message> BlockingBoundedQueue::WaitPop() {
     std::unique_lock<std::mutex> lock(mutex_);
-    cv_not_empty_.wait(lock, [this]() {
-        return !queue_.empty() || is_closed_;
+
+    auto latency = MeasureExecutionTime([&]() {
+        cv_not_empty_.wait(lock, [this]() {
+            return !queue_.empty() || is_closed_;
+        });
     });
+    stats_.block_time_ms += latency / 1000.0;
 
     if (queue_.empty() && is_closed_) {
         return std::nullopt;

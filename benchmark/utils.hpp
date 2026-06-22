@@ -5,7 +5,6 @@
 
 #include <chrono>
 #include <utility>
-#include <type_traits>
 #include <vector>
 #include <numeric>
 #include <algorithm>
@@ -17,26 +16,6 @@ inline void SpinWait(std::chrono::microseconds required_delay) {
     }
     const auto wait_start_time = std::chrono::high_resolution_clock::now();
     while (std::chrono::high_resolution_clock::now() - wait_start_time < required_delay) {}
-}
-
-template<typename Func, typename... Args>
-auto MeasureExecutionTime(Func&& func, Args&&... args) {
-    using ReturnType = std::invoke_result_t<Func, Args...>;
-
-    const auto start_time = std::chrono::high_resolution_clock::now();
-
-    if constexpr (std::is_same_v<ReturnType, void>) {
-        std::forward<Func>(func)(std::forward<Args>(args)...);
-        const auto end_time = std::chrono::high_resolution_clock::now();
-
-        return std::chrono::duration<double, std::micro>(end_time - start_time).count();
-    } else {
-        ReturnType result = std::forward<Func>(func)(std::forward<Args>(args)...);
-        const auto end_time = std::chrono::high_resolution_clock::now();
-        double latency = std::chrono::duration<double, std::micro>(end_time - start_time).count();
-
-        return std::make_pair(std::move(result), latency);
-    }
 }
 
 inline void SetLatencyCounters(benchmark::State& state, std::vector<double>& latencies) {
@@ -58,7 +37,7 @@ inline void SetQueueStatsCounters(benchmark::State& state, BaseQueue* queue) {
     state.counters["queue_pushed"] = stats.push_count / iterations;
     state.counters["queue_popped"] = stats.pop_count / iterations;
     state.counters["queue_dropped"] = stats.dropout_count / iterations;
-    state.counters["queue_blocked_ms"] = std::chrono::duration_cast<std::chrono::microseconds>(stats.block_time).count() / iterations;
+    state.counters["queue_blocked_ms"] = stats.block_time_ms / iterations;
 }
 
 inline void SetFairnessCounter(benchmark::State& state, const std::vector<std::map<int, int>>& all_consumer_counts) {

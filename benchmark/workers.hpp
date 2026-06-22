@@ -1,6 +1,7 @@
 #pragma once
 
 #include <message_queue/base_queue.hpp>
+#include <message_queue/utils.hpp>
 
 #include <algorithm>
 #include <atomic>

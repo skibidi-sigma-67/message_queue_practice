@@ -1,13 +1,12 @@
 #pragma once
 
-#include <chrono>
 #include <cstddef>
 
 struct QueueStats {
-    size_t push_count;
-    size_t pop_count;
-    size_t dropout_count;
-    size_t failed_count;
-    size_t current_size;
-    std::chrono::steady_clock::duration block_time;
+    size_t push_count = 0;
+    size_t pop_count = 0;
+    size_t dropout_count = 0;
+    size_t failed_count = 0;
+    size_t current_size = 0;
+    double block_time_ms = 0.0;
 };
